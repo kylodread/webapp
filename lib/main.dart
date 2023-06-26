@@ -70,7 +70,7 @@ class _WebViewPageState extends State<WebViewPage> {
   Future<void> initializeCamera() async {
     cameras = await availableCameras();
     _cameraController = CameraController(
-      cameras[0],
+      cameras[1],
       ResolutionPreset.medium,
     );
     await _cameraController.initialize();

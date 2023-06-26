@@ -3,10 +3,12 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:camera/camera.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

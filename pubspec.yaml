@@ -15,8 +15,13 @@ dependencies:
   cupertino_icons: ^1.0.2
 
 flutter:
+  fonts:
+    - family: POR2
+      fonts:
+        - asset: assets/fonts/POR2.ttf
   assets:
     - assets/images/absol.png
+    - assets/images/porsche.png
   uses-material-design: true
 
 dev_dependencies:

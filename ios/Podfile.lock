@@ -1,0 +1,28 @@
+PODS:
+  - camera_avfoundation (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+  - webview_flutter_wkwebview (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
+  - Flutter (from `Flutter`)
+  - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/ios`)
+
+EXTERNAL SOURCES:
+  camera_avfoundation:
+    :path: ".symlinks/plugins/camera_avfoundation/ios"
+  Flutter:
+    :path: Flutter
+  webview_flutter_wkwebview:
+    :path: ".symlinks/plugins/webview_flutter_wkwebview/ios"
+
+SPEC CHECKSUMS:
+  camera_avfoundation: 3125e8cd1a4387f6f31c6c63abb8a55892a9eeeb
+  Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
+  webview_flutter_wkwebview: b7e70ef1ddded7e69c796c7390ee74180182971f
+
+PODFILE CHECKSUM: 70d9d25280d0dd177a5f637cdb0f0b0b12c6a189
+
+COCOAPODS: 1.12.1

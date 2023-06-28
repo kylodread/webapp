@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:camera/camera.dart';
@@ -53,18 +55,15 @@ class WebViewPage extends StatefulWidget {
 }
 
 class _WebViewPageState extends State<WebViewPage> {
-  WebView? _webView;
+  late WebViewController _webViewController;
   late List<CameraDescription> cameras;
   late CameraController _cameraController;
+  bool isCameraRequested = false;
+  bool _isPopupVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _webView = const WebView(
-      initialUrl: 'https://events.porschesouthafrica.co.za/',
-      javascriptMode: JavascriptMode.unrestricted,
-    );
-    initializeCamera();
   }
 
   Future<void> initializeCamera() async {
@@ -76,26 +75,85 @@ class _WebViewPageState extends State<WebViewPage> {
     await _cameraController.initialize();
   }
 
+  Future<void> requestCameraAccess() async {
+    setState(() {
+      isCameraRequested = true;
+    });
+    await initializeCamera();
+    _webViewController.evaluateJavascript('navigator.mediaDevices.getUserMedia({ video: true })');
+  }
+
+  Future<void> invokeMethod(String method) async {
+    if (method == 'requestCameraAccess') {
+      await requestCameraAccess();
+    }
+  }
+
   @override
   void dispose() {
-    _cameraController.dispose();
+    if (isCameraRequested) {
+      _cameraController.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      body: Stack(
+        children: [
+          WebView(
+            initialUrl: 'https://events.porschesouthafrica.co.za/',
+            javascriptMode: JavascriptMode.unrestricted,
+            javascriptChannels: <JavascriptChannel>{
+              _createJavascriptChannel(),
+            },
+            onWebViewCreated: (WebViewController controller) {
+              _webViewController = controller;
+            },
+            navigationDelegate: (NavigationRequest request) {
+              if (request.url.startsWith('https://events.porschesouthafrica.co.za/')) {
+                return NavigationDecision.navigate;
+              }
+              return NavigationDecision.prevent;
+            },
+          ),
+          if (_isPopupVisible)
+            Stack(
+              children: [
+                // Blurred background
+                BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.5),
+                  ),
+                ),
+                // Popup window
+                const Align(
+                  alignment: Alignment.center,
+                  child: PopupWindow(),
+                ),
+              ],
+            ),
+        ],
+      ),
       appBar: AppBar(
-        leading: Image.asset(
-          'assets/images/absol.png', // Replace with your image path
-          width:
-              kToolbarHeight, // Set the width to match the height of the app bar
+        leading: GestureDetector(
+          onTap: () {
+            setState(() {
+              _isPopupVisible = !_isPopupVisible;
+            });
+          },
+          child: Image.asset(
+            'assets/images/absol.png',
+            width: kToolbarHeight,
+          ),
         ),
         title: const Text(
-          'Absol & Porsche Events',
+          'Porsche Events',
           style: TextStyle(
-            fontFamily: 'POR2', // Replace with your custom font name
-            fontSize: 13, // Adjust the font size as needed
+            fontFamily: 'POR2',
+            fontSize: 17,
           ),
         ),
         centerTitle: true,
@@ -103,26 +161,59 @@ class _WebViewPageState extends State<WebViewPage> {
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: Image.asset(
-              'assets/images/porsche.png', // Replace with your second logo image path
+              'assets/images/porsche.png',
               width: 27,
               height: 27,
             ),
           ),
         ],
       ),
-      body: _webView,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          openCamera();
-        },
-        tooltip: 'Open Camera',
-        child: const Icon(Icons.camera),
-      ),
     );
   }
 
-  Future<void> openCamera() async {
-    await _cameraController.initialize();
-    await _cameraController.takePicture();
+  JavascriptChannel _createJavascriptChannel() {
+    return JavascriptChannel(
+      name: 'CameraChannel',
+      onMessageReceived: (JavascriptMessage message) {
+        invokeMethod(message.message);
+      },
+    );
+  }
+}
+
+class PopupWindow extends StatelessWidget {
+  const PopupWindow({Key? key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 300,
+      height: 200,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text(
+              'Absol Testing Unit',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'This is an unofficial testing unit.',
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

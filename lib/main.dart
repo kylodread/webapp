@@ -67,20 +67,63 @@ class _WebViewPageState extends State<WebViewPage> {
   }
 
   Future<void> initializeCamera() async {
-    cameras = await availableCameras();
-    _cameraController = CameraController(
-      cameras[1],
-      ResolutionPreset.medium,
-    );
-    await _cameraController.initialize();
+    try {
+      cameras = await availableCameras();
+      _cameraController = CameraController(
+        cameras[0],
+        ResolutionPreset.medium,
+      );
+      await _cameraController.initialize();
+    } catch (e) {
+      print('Error initializing camera: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Camera Error'),
+            content: const Text('Failed to access the camera.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> requestCameraAccess() async {
     setState(() {
       isCameraRequested = true;
     });
-    await initializeCamera();
-    _webViewController.evaluateJavascript('navigator.mediaDevices.getUserMedia({ video: true })');
+
+    try {
+      await initializeCamera();
+      _webViewController.evaluateJavascript('cameraAccessGranted()');
+    } catch (e) {
+      print('Error accessing camera: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Camera Error'),
+            content: const Text('Failed to access the camera.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> invokeMethod(String method) async {
@@ -112,7 +155,8 @@ class _WebViewPageState extends State<WebViewPage> {
               _webViewController = controller;
             },
             navigationDelegate: (NavigationRequest request) {
-              if (request.url.startsWith('https://events.porschesouthafrica.co.za/')) {
+              if (request.url
+                  .startsWith('https://events.porschesouthafrica.co.za/')) {
                 return NavigationDecision.navigate;
               }
               return NavigationDecision.prevent;
